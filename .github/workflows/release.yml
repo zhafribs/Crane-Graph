@@ -31,13 +31,14 @@ jobs:
         with:
           python-version: '3.12'
 
-      # zsyncmake writes the .zsync.  The python-appimage base image is itself an
-      # AppImage, so libfuse2 lets the runner mount it if it needs to (the name
-      # differs across Ubuntu releases).
+      # zsyncmake writes the .zsync; squashfs-tools provides mksquashfs, which
+      # appimagetool needs to pack the AppImage (it is not on the base image).
+      # python-appimage's base image is itself an AppImage, so libfuse2 lets the
+      # runner mount it if it needs to (the name differs across Ubuntu releases).
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y zsync
+          sudo apt-get install -y zsync squashfs-tools
           sudo apt-get install -y libfuse2 || sudo apt-get install -y libfuse2t64 || true
 
       - name: Build the AppImage and its zsync
