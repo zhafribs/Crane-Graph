@@ -44,6 +44,9 @@ jobs:
       - name: Build the AppImage and its zsync
         env:
           RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
+          # Pin the base image: python-appimage's "latest" lookup hits the
+          # unauthenticated GitHub API and gets rate limited in CI.
+          BASE_IMAGE: https://github.com/niess/python-appimage/releases/download/python3.15/python3.15.0rc3-cp315-cp315-manylinux2014_x86_64.AppImage
         run: |
           python3 -m venv .venv
           .venv/bin/python -m pip install --upgrade pip
