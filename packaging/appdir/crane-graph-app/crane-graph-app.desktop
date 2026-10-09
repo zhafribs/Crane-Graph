@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=CraneGraph
+GenericName=Crane Working Range Diagram
+Comment=Dynamic crane load chart / working range diagram: boom, jib and crane position on an XY axis
+Exec=crane-graph-app
+Icon=crane-graph-app
+Terminal=false
+Categories=Utility;Science;Construction;
+Keywords=crane;boom;jib;working;range;envelope;diagram;load;chart;radius;

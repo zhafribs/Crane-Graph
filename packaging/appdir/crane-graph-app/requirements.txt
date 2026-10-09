@@ -1,0 +1,7 @@
+# Dependencies bundled into the AppImage by python-appimage.
+#
+# PyQt5 is pip-installed into the bundled Python interpreter.
+# local+crane_graph copies the local crane_graph package (found via PYTHONPATH,
+# as exported in build-appimage.sh) into the image's site-packages.
+PyQt5
+local+crane_graph

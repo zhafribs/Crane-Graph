@@ -63,7 +63,8 @@ crane_graph/
     gui.py                      the PyQt5 window, controls and interactive canvas
     theme.py                    the Qt stylesheet
 packaging/
-    appdir/crane-graph-app/     the AppDir skeleton, including the icon
+    appdir/crane-graph-app/     the AppDir: desktop entry, icon, entrypoint and
+                                bundled deps (requirements.txt)
 build-appimage.sh               builds the AppImage and its .zsync
 .github/workflows/release.yml   publishes both when a version tag is pushed
 ```
@@ -89,6 +90,11 @@ So:
 
 - The icon is checked in and is **source** now, not build output. It cannot be
   regenerated, and a clone without it cannot build.
+- The `.desktop` entry, the `entrypoint` and the appdir's `requirements.txt` were
+  likewise recovered from the AppImage and are checked in now. The build depends on
+  them: python-appimage only bundles what it finds in the appdir, and the current
+  appimagetool refuses to pack an AppDir whose desktop entry references an icon that
+  is not in the bundle.
 - `tests/` was not recovered either; its `__pycache__` was empty. Any tests worth
   having would have to be written again.
 - `dist/` is ignored, but the AppImage in it is worth keeping somewhere outside the
