@@ -1,0 +1,22 @@
+# The venv is rebuilt from requirements.txt, and a checked-in one is both huge and
+# machine-specific.
+.venv/
+
+# Build output. `dist/` holds the AppImage, which is a release artefact rather than
+# source -- and on this project it was, for a while, the *only* surviving copy of
+# the program. See the README.
+dist/
+
+__pycache__/
+*.pyc
+
+# NOTE: `packaging/appdir/crane-graph-app/crane-graph-app.png` used to be ignored
+# here, because `packaging/make_icon.py` generated it.
+#
+# That script was lost in the same accident as the rest of the source, and it is the
+# one file an AppImage could not give back: an AppImage bundles what the program
+# *runs*, and a build script is not run from inside it. The icon survived; the code
+# that drew it did not.
+#
+# So the icon is source now. It is checked in, `build-appimage.sh` uses it as it
+# stands, and it must not be ignored again -- a fresh clone without it cannot build.

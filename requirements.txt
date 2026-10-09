@@ -1,0 +1,11 @@
+# Runtime and build dependencies.
+#
+# Install into the project venv:
+#     python3 -m venv .venv
+#     .venv/bin/python -m pip install -r requirements.txt
+#
+# PyQt5 is the GUI. python-appimage is only needed to *build* the AppImage; it is
+# listed here rather than in a separate file because this project is small enough
+# that one list is easier to keep correct than two.
+PyQt5
+python-appimage
