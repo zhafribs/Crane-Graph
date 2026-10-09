@@ -40,6 +40,13 @@ the `origin` remote and version (override with `ZSYNC_URL`, `RELEASE_TAG` or
 produces no `.zsync`. Note that the script expects the icon to **already exist** at
 `packaging/appdir/crane-graph-app/crane-graph-app.png` — see below.
 
+By default `build-appimage.sh` lets python-appimage pick the-newest-published base
+image, which needs an unauthenticated GitHub API call. Set `BASE_IMAGE` to a direct
+AppImage URL (or local file) to pin the base image and skip that lookup — the release
+workflow does this to stay clear of API rate limits. A URL is downloaded using its
+versioned file name first, because python-appimage reads the bundled Python version
+out of that name.
+
 ## Releases
 
 Pushing a version tag runs the release workflow and publishes both files:

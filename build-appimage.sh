@@ -56,7 +56,32 @@ export PYTHONPATH="$ROOT"
 
 echo ">> Building AppImage (downloads base image + PyQt5, may take a while) ..."
 cd "$DIST"
-"$APPIMAGE_TOOL" build app "$APPDIR"
+
+# Pin the python-appimage base image when BASE_IMAGE is set.  This skips
+# python-appimage's unauthenticated GitHub API lookup for the "latest"
+# image, which is unreliable under CI rate limits.  When BASE_IMAGE is a
+# URL it is downloaded here first and keeps its versioned file name, since
+# python-appimage derives the bundled Python version from the image's file
+# name (its parser trips over the "pythonX.Y/" segment inside a raw URL).
+# Leave it empty to let python-appimage pick the newest published image.
+BASE_IMAGE_ARGS=()
+if [ -n "${BASE_IMAGE:-}" ]; then
+    case "$BASE_IMAGE" in
+        http://*|https://*)
+            base_file="$(basename "$BASE_IMAGE")"
+            if [ ! -f "$base_file" ]; then
+                echo ">> Downloading base image: $BASE_IMAGE"
+                curl -fL --retry 3 -o "$base_file" "$BASE_IMAGE"
+            fi
+            chmod +x "$base_file"
+            BASE_IMAGE="$PWD/$base_file"
+            ;;
+    esac
+    BASE_IMAGE_ARGS=("--base-image" "$BASE_IMAGE")
+    echo ">> Using pinned base image: $BASE_IMAGE"
+fi
+
+"$APPIMAGE_TOOL" build app "${BASE_IMAGE_ARGS[@]}" "$APPDIR"
 
 echo ">> Normalising output name ..."
 for f in ./*.AppImage; do
