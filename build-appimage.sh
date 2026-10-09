@@ -67,4 +67,47 @@ for f in ./*.AppImage; do
     break
 done
 chmod +x "$DIST/$FINAL_NAME"
-echo "DONE: $DIST/$FINAL_NAME"
+
+# Emit a .zsync beside the AppImage so existing users can update by downloading
+# only the blocks that changed (AppImageUpdate).  A .zsync is bound to one
+# download URL -- it names the file it describes and embeds where that file is
+# served from -- so it has to be regenerated for every release.
+#
+# The URL defaults to the GitHub release asset:
+#
+#   https://github.com/<owner>/<repo>/releases/download/<tag>/<file>
+#
+# <owner>/<repo> is read from the `origin` remote, <tag> is the version with a
+# leading "V" lower-cased (V1.0.0 -> v1.0.0) and <file> is FINAL_NAME.  Override
+# any of it with ZSYNC_URL (a full URL), RELEASE_TAG or GITHUB_REPO (owner/name).
+#
+# zsync is optional: if zsyncmake is missing the build still succeeds, it just
+# produces no .zsync.  Install it with `apt install zsync`.
+if command -v zsyncmake >/dev/null 2>&1; then
+    tag="${RELEASE_TAG:-v${VERSION#V}}"
+
+    if [ -z "${GITHUB_REPO:-}" ]; then
+        GITHUB_REPO="$(git -C "$ROOT" remote get-url origin 2>/dev/null \
+            | sed -E 's#(git@|https?://)github\.com[:/]##; s#\.git$##' || true)"
+    fi
+
+    if [ -z "${ZSYNC_URL:-}" ] && [ -n "$GITHUB_REPO" ]; then
+        ZSYNC_URL="https://github.com/$GITHUB_REPO/releases/download/$tag/$FINAL_NAME"
+    fi
+
+    if [ -n "${ZSYNC_URL:-}" ]; then
+        echo ">> Generating zsync for delta updates ..."
+        echo "   URL: $ZSYNC_URL"
+        zsyncmake -u "$ZSYNC_URL" -o "$DIST/$FINAL_NAME.zsync" "$DIST/$FINAL_NAME"
+    else
+        echo ">> Skipping zsync: set ZSYNC_URL or add a GitHub 'origin' remote to enable delta updates."
+    fi
+else
+    echo ">> Skipping zsync: zsyncmake not found (apt install zsync)."
+fi
+
+echo "DONE:"
+echo "  $DIST/$FINAL_NAME"
+if [ -f "$DIST/$FINAL_NAME.zsync" ]; then
+    echo "  $DIST/$FINAL_NAME.zsync"
+fi

@@ -1,0 +1,75 @@
+name: Release
+
+# Build the AppImage and its .zsync on a runner and publish them as a GitHub
+# release.  Triggered by pushing a version tag (e.g. v1.0.0), or started by hand
+# from the Actions tab.  The tag is the release tag, so keep it in step with
+# VERSION in build-appimage.sh (see the README).
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to create, e.g. v1.0.0"
+        required: true
+        type: string
+
+# gh release create/upload needs write access to the repository's contents.
+permissions:
+  contents: write
+
+jobs:
+  appimage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # zsyncmake writes the .zsync.  The python-appimage base image is itself an
+      # AppImage, so libfuse2 lets the runner mount it if it needs to (the name
+      # differs across Ubuntu releases).
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zsync
+          sudo apt-get install -y libfuse2 || sudo apt-get install -y libfuse2t64 || true
+
+      - name: Build the AppImage and its zsync
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
+        run: |
+          python3 -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/python -m pip install -r requirements.txt
+          ./build-appimage.sh
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
+        run: |
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --clobber \
+              dist/*.appimage dist/*.appimage.zsync
+          else
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "Crane Graph $RELEASE_TAG" \
+              --generate-notes \
+              dist/*.appimage dist/*.appimage.zsync
+          fi
+
+      - name: Keep the built artefacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crane-graph-appimage
+          path: |
+            dist/*.appimage
+            dist/*.appimage.zsync
+          if-no-files-found: warn

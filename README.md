@@ -31,8 +31,28 @@ python3 -m venv .venv
 ./build-appimage.sh
 ```
 
-The result lands in `dist/`. Note that the script expects the icon to **already
-exist** at `packaging/appdir/crane-graph-app/crane-graph-app.png` — see below.
+The result lands in `dist/`: the AppImage plus a matching `.zsync` for
+[AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate), so an
+installed copy can update by downloading only the blocks that changed. A `.zsync`
+embeds the download URL it was built for, so it is regenerated on every build from
+the `origin` remote and version (override with `ZSYNC_URL`, `RELEASE_TAG` or
+`GITHUB_REPO`). If `zsyncmake` is not installed the build still succeeds, it just
+produces no `.zsync`. Note that the script expects the icon to **already exist** at
+`packaging/appdir/crane-graph-app/crane-graph-app.png` — see below.
+
+## Releases
+
+Pushing a version tag runs the release workflow and publishes both files:
+
+```bash
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+`.github/workflows/release.yml` builds the AppImage and `.zsync` on a runner and
+attaches them to a GitHub release for that tag. The same workflow can be started by
+hand from the Actions tab. Keep the tag in step with `VERSION` in
+`build-appimage.sh`.
 
 ## Layout
 
@@ -44,7 +64,8 @@ crane_graph/
     theme.py                    the Qt stylesheet
 packaging/
     appdir/crane-graph-app/     the AppDir skeleton, including the icon
-build-appimage.sh               builds the AppImage
+build-appimage.sh               builds the AppImage and its .zsync
+.github/workflows/release.yml   publishes both when a version tag is pushed
 ```
 
 `geometry.py` deliberately imports nothing from Qt. Everything the diagram computes
