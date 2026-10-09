@@ -10,7 +10,7 @@
 set -euo pipefail
 
 APP_NAME="crane-graph"
-VERSION="V1.0.0"
+VERSION="V1.0.1"
 FINAL_NAME="${APP_NAME}-${VERSION}.appimage"
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
